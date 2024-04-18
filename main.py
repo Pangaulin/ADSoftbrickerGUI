@@ -4,7 +4,7 @@ root = ctk.CTk()
 root.geometry("300x110")
 root.title("ADSoftbricker")
 ctk.set_appearance_mode("light")
-ctk.set_default_color_theme("blue")
+ctk.set_default_color_theme("blue") 
 
 def displayedMethod(self):
     method = combobox.get()
@@ -23,31 +23,29 @@ def displayedMethod(self):
         yes_radio.pack_forget()
         no_radio.pack_forget()
     if method == "Wireless Debugging":
-        root.geometry("300x300")
+        root.geometry("300x410")
         ip_label.pack()
         ip_input.pack()
         port_label.pack()
         port_input.pack()
         yes_radio.pack(pady=7, padx=125)
         no_radio.pack(pady=5, padx=125)
+        ip_pair_label.pack()
+        ip_pair_input.pack()
+        port_pair_label.pack()
+        port_pair_input.pack()
         wireless_button.pack(pady=15)
         usb_button.pack_forget()
 
 def isPaired():
     if is_paired.get() == True:
-        root.geometry("300x300")
-        ip_pair_label.pack_forget()
-        ip_pair_input.pack_forget()
-        port_pair_label.pack_forget()
-        port_pair_input.pack_forget()
+        ip_pair_input.delete(0, 'end')
+        port_pair_input.delete(0, 'end')
+        ip_pair_input.configure(state="disabled")
+        port_pair_input.configure(state="disabled")
     elif is_paired.get() == False:
-        root.geometry("300x410")
-        wireless_button.pack_forget()
-        ip_pair_label.pack()
-        ip_pair_input.pack()
-        port_pair_label.pack()
-        port_pair_input.pack()
-        wireless_button.pack(pady=10)
+        ip_pair_input.configure(state="normal")
+        port_pair_input.configure(state="normal")
 
 first_label = ctk.CTkLabel(root, text="How do you want to connect to the target ?")
 combobox_values = ["USB Debugging", "Wireless Debugging"]
