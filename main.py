@@ -4,6 +4,7 @@ import time
 import subprocess
 from zipfile import ZipFile
 import customtkinter as ctk
+import CTkMessagebox
 
 root = ctk.CTk()
 root.geometry("300x110")
@@ -57,6 +58,15 @@ def isPaired():
         ip_pair_input.configure(state="normal")
         port_pair_input.configure(state="normal")
 
+def wirelessConfirmation():
+    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
+                                 icon="warning", option_1="Yes", option_2="No")
+    response = confirmation.get()
+    if (response=="Yes"):
+        wireless()
+    else:
+        return
+
 def wireless():
     root.geometry("670x500")
     regex_ip = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
@@ -98,24 +108,28 @@ def wireless():
                 returnlabel.pack()
                 return
             else:
-                pair_return = subprocess.run([adb_path, 'pair', f'{pair_ip}:{pair_port}', paircode], shell=False, capture_output=True, text=True)
-                if "error" in pair_return.stderr or "error" in pair_return.stdout:
+                pair_return = subprocess.run([adb_path, 'pair', f'{pair_ip}:{pair_port}', paircode], shell=True, capture_output=True, text=True)
+                if f"Successfully paired to {pair_ip}:{pair_port}" in pair_return.stdout:
+                    print(pair_return.stdout)
+                    returnlabel.configure(text=f"The device {pair_ip}:{pair_port} was successfully paired !", text_color="black")
+                    returnlabel.pack()
+                else:
+                    print(pair_return.stdout)
                     returnlabel.configure(text="An error has occured while pairing the device, please check if the informations you gave are correct", text_color="red")
                     returnlabel.pack()
                     return
-                else:
-                    returnlabel.configure(text=pair_return.stdout, text_color="black")
-                    returnlabel.pack()
 
     time.sleep(3)
     connect_return = subprocess.run([adb_path, "connect", f"{ip}:{port}"], shell=False, text=True, capture_output=True)
-    if "cannot connect" in connect_return.stdout or "failed to connect" in connect_return.stdout:
-        returnlabel.configure(text="An error has occured while connecting to the device, please check if the information you gave are correct, and check if the phone and the computer are on the same network", text_color="red", width=630)
+    if f"connected to {ip}:{port}" in connect_return.stdout or f"already connected to {ip}:{port}" in connect_return.stdout:
+        returnlabel.configure(f"Successfully connected to {ip}:{port} !", text_color="black")
+        returnlabel.pack()
+    else:
+        print(connect_return.stdout, connect_return.stderr)
+        returnlabel.configure(text="An error has occured while connecting to the device, please check if the information you gave are correct,\n and check if the phone and the computer are on the same network", text_color="red")
         returnlabel.pack()
         return
-    else:
-        returnlabel.configure(text=connect_return.stdout, text_color="black")
-        returnlabel.pack()
+        
 
 def pairPopup():
     popup = ctk.CTkInputDialog(text="What is the six digit pair code ?", title="Pair code prompt")
@@ -123,13 +137,14 @@ def pairPopup():
     return paircode
     
 returnlabel = ctk.CTkLabel(root, text="", text_color="red")
+returnlabel.configure(width=20, height=10)
 
 first_label = ctk.CTkLabel(root, text="How do you want to connect to the target ?")
 combobox_values = ["USB Debugging", "Wireless Debugging"]
 combobox = ctk.CTkComboBox(root, values=combobox_values, width=170, command=displayedMethod)
 usb_button = ctk.CTkButton(root, text="Start softbricking")
 
-wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wireless)
+wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wirelessConfirmation)
 ip_label = ctk.CTkLabel(root, text="IP Address:")
 ip_input = ctk.CTkEntry(root, placeholder_text="XXX.XXX.X.XX")
 port_label = ctk.CTkLabel(root, text="Port:")
