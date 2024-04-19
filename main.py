@@ -1,3 +1,8 @@
+import re
+import os
+import time
+import subprocess
+from zipfile import ZipFile
 import customtkinter as ctk
 
 root = ctk.CTk()
@@ -22,54 +27,138 @@ def displayedMethod(self):
         port_pair_input.pack_forget()
         yes_radio.pack_forget()
         no_radio.pack_forget()
+        ispaired_label.pack_forget()
+        returnlabel.pack_forget()
     if method == "Wireless Debugging":
-        root.geometry("300x410")
+        root.geometry("670x500")
         ip_label.pack()
         ip_input.pack()
         port_label.pack()
         port_input.pack()
-        yes_radio.pack(pady=7, padx=125)
-        no_radio.pack(pady=5, padx=125)
+        ispaired_label.pack(pady=3)
+        yes_radio.pack(pady=4, padx=310, anchor="center")
+        no_radio.pack(pady=5, padx=310, anchor="center")
         ip_pair_label.pack()
         ip_pair_input.pack()
         port_pair_label.pack()
         port_pair_input.pack()
-        wireless_button.pack(pady=15)
+        wireless_button.pack(pady=10)
         usb_button.pack_forget()
 
 def isPaired():
     if is_paired.get() == True:
         ip_pair_input.delete(0, 'end')
         port_pair_input.delete(0, 'end')
+        ip_pair_input.configure(placeholder_text="XXX.XXX.X.XX")
+        port_pair_input.configure(placeholder_text="XXXXX")
         ip_pair_input.configure(state="disabled")
         port_pair_input.configure(state="disabled")
     elif is_paired.get() == False:
         ip_pair_input.configure(state="normal")
         port_pair_input.configure(state="normal")
 
+def wireless():
+    root.geometry("670x500")
+    regex_ip = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
+    regex_port = r'^([0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$'
+    if not re.match(regex_ip, ip_input.get()):
+        returnlabel.configure(text="The IP isn't in the correct format", text_color="red")
+        returnlabel.pack()
+        return
+    elif not re.match(regex_port, port_input.get()):
+        returnlabel.configure(text="The port isn't in the correct format", text_color="red")
+        returnlabel.pack()
+        return
+    else:
+        pass
+
+    ip = ip_input.get()
+    port = port_input.get()
+
+    if is_paired.get() == False:
+        if not re.match(regex_ip, ip_pair_input.get()):
+           returnlabel.configure(text="The pair IP isn't in the correct format", text_color="red")
+           returnlabel.pack()
+           return
+        elif not re.match(regex_port, port_pair_input.get()):
+            returnlabel.configure(text="The pair port isn't in the correct format", text_color="red")
+            returnlabel.pack()
+            return
+        else:
+            pair_ip = ip_pair_input.get()
+            pair_port = port_pair_input.get()
+            paircode = pairPopup()
+            regex_pair_code = r'\d{6}$'
+            if paircode is None:
+                root.geometry("670x500")
+                returnlabel.pack_forget()
+                return
+            elif not re.match(regex_pair_code, paircode):
+                returnlabel.configure(text="The pair code is not in the correct format")
+                returnlabel.pack()
+                return
+            else:
+                pair_return = subprocess.run([adb_path, 'pair', f'{pair_ip}:{pair_port}', paircode], shell=False, capture_output=True, text=True)
+                if "error" in pair_return.stderr or "error" in pair_return.stdout:
+                    returnlabel.configure(text="An error has occured while pairing the device, please check if the informations you gave are correct", text_color="red")
+                    returnlabel.pack()
+                    return
+                else:
+                    returnlabel.configure(text=pair_return.stdout, text_color="black")
+                    returnlabel.pack()
+
+    time.sleep(3)
+    connect_return = subprocess.run([adb_path, "connect", f"{ip}:{port}"], shell=False, text=True, capture_output=True)
+    if "cannot connect" in connect_return.stdout or "failed to connect" in connect_return.stdout:
+        returnlabel.configure(text="An error has occured while connecting to the device, please check if the information you gave are correct, and check if the phone and the computer are on the same network", text_color="red", width=630)
+        returnlabel.pack()
+        return
+    else:
+        returnlabel.configure(text=connect_return.stdout, text_color="black")
+        returnlabel.pack()
+
+def pairPopup():
+    popup = ctk.CTkInputDialog(text="What is the six digit pair code ?", title="Pair code prompt")
+    paircode = popup.get_input()
+    return paircode
+    
+returnlabel = ctk.CTkLabel(root, text="", text_color="red")
+
 first_label = ctk.CTkLabel(root, text="How do you want to connect to the target ?")
 combobox_values = ["USB Debugging", "Wireless Debugging"]
 combobox = ctk.CTkComboBox(root, values=combobox_values, width=170, command=displayedMethod)
 usb_button = ctk.CTkButton(root, text="Start softbricking")
 
-wireless_button = ctk.CTkButton(root, text="Start wireless softbricking")
+wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wireless)
 ip_label = ctk.CTkLabel(root, text="IP Address:")
-ip_input = ctk.CTkEntry(root)
+ip_input = ctk.CTkEntry(root, placeholder_text="XXX.XXX.X.XX")
 port_label = ctk.CTkLabel(root, text="Port:")
-port_input = ctk.CTkEntry(root)
+port_input = ctk.CTkEntry(root, placeholder_text="XXXXX")
 is_paired = ctk.BooleanVar()
+ispaired_label = ctk.CTkLabel(root, text="Is the device paired to the application ?")
 yes_radio = ctk.CTkRadioButton(root, text="Yes", value=True, variable=is_paired, command=isPaired)
 no_radio = ctk.CTkRadioButton(root, text="No", value=False, variable=is_paired, command=isPaired)
 ip_pair_label = ctk.CTkLabel(root, text="IP Address for pairing:")
-ip_pair_input = ctk.CTkEntry(root)
+ip_pair_input = ctk.CTkEntry(root, placeholder_text="XXX.XXX.X.XX")
 port_pair_label = ctk.CTkLabel(root, text="Port for pairing:")
-port_pair_input = ctk.CTkEntry(root)
+port_pair_input = ctk.CTkEntry(root, placeholder_text="XXXXX")
+ip_pair_input.configure(state="disabled")
+port_pair_input.configure(state="disabled")
 
 is_paired.set(True)
 
-first_label.pack()
+first_label.pack(pady=4)
 combobox.pack()
 combobox.set("USB Debugging")
 usb_button.pack(pady=10)
+
+if not os.path.exists('platform-tools'):
+            print("Downloading Android Debug Bridge")
+            subprocess.run(["curl", "https://dl.google.com/android/repository/platform-tools-latest-windows.zip?hl=fr", "-o", "platform-tools.zip"])
+            with ZipFile('platform-tools.zip', 'r') as zip:
+                zip.extractall()
+            os.remove("platform-tools.zip")
+
+adb_path = "platform-tools\\adb.exe"
 
 root.mainloop()
