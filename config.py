@@ -1,0 +1,1 @@
+adb_path = "modules\\platform-tools\\adb.exe"

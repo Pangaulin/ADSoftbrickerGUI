@@ -5,6 +5,7 @@ import subprocess
 from zipfile import ZipFile
 import customtkinter as ctk
 import CTkMessagebox
+from config import adb_path
 
 root = ctk.CTk()
 root.geometry("300x110")
@@ -108,7 +109,7 @@ def wireless():
                 returnlabel.pack()
                 return
             else:
-                pair_return = subprocess.run([adb_path, 'pair', f'{pair_ip}:{pair_port}', paircode], shell=True, capture_output=True, text=True)
+                pair_return = subprocess.run([adb_path, 'pair', f'{pair_ip}:{pair_port}', paircode], shell=False, capture_output=True, text=True)
                 if f"Successfully paired to {pair_ip}:{pair_port}" in pair_return.stdout:
                     print(pair_return.stdout)
                     returnlabel.configure(text=f"The device {pair_ip}:{pair_port} was successfully paired !", text_color="black")
@@ -129,6 +130,11 @@ def wireless():
         returnlabel.configure(text="An error has occured while connecting to the device, please check if the information you gave are correct,\n and check if the phone and the computer are on the same network", text_color="red")
         returnlabel.pack()
         return
+    
+    get_process = subprocess.run([adb_path, "-s", f"{ip}:{port}", "shell", "pm", "list", "packages", "-f"], capture_output=True, text=True, shell=False)
+    process_array = get_process.stdout.split('\n')
+
+    
         
 
 def pairPopup():
@@ -167,13 +173,11 @@ combobox.pack()
 combobox.set("USB Debugging")
 usb_button.pack(pady=10)
 
-if not os.path.exists('platform-tools'):
+if not os.path.exists('modules\\platform-tools'):
             print("Downloading Android Debug Bridge")
-            subprocess.run(["curl", "https://dl.google.com/android/repository/platform-tools-latest-windows.zip?hl=fr", "-o", "platform-tools.zip"])
-            with ZipFile('platform-tools.zip', 'r') as zip:
-                zip.extractall()
-            os.remove("platform-tools.zip")
-
-adb_path = "platform-tools\\adb.exe"
+            subprocess.run(["curl", "https://dl.google.com/android/repository/platform-tools-latest-windows.zip?hl=fr", "-o", "modules\\platform-tools.zip"])
+            with ZipFile('modules\\platform-tools.zip', 'r') as zip:
+                zip.extractall(path="modules")
+            os.remove("modules\\platform-tools.zip")
 
 root.mainloop()
