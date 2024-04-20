@@ -24,5 +24,6 @@ class processManager():
             return
         result = subprocess.run([adb_path, "shell", "pm", "uninstall", "-k", "--user", "0" , f"{process}"], text=True, capture_output=True, shell=False)
         if "no devices/emulators found" in result.stdout:
-            return print(f"The device or the emulator was disconnected, the package {process} is still on the device")
-        return print(f'{process} was successfully deleted !')
+            return 0
+        else:
+            return 1

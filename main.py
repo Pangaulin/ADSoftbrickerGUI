@@ -3,6 +3,8 @@ import os
 import time
 import subprocess
 from zipfile import ZipFile
+from modules.processManager import processManager
+
 import customtkinter as ctk
 import CTkMessagebox
 from config import adb_path
@@ -134,8 +136,16 @@ def wireless():
     get_process = subprocess.run([adb_path, "-s", f"{ip}:{port}", "shell", "pm", "list", "packages", "-f"], capture_output=True, text=True, shell=False)
     process_array = get_process.stdout.split('\n')
 
-    
-        
+    process_array = processManager().rename(process_array)
+    for i in range(len(process_array)):
+            delete_return = processManager().delete(process_array[i])
+            if delete_return == 0:
+                returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
+                returnlabel.pack()
+                return
+            else:
+                subprocess.run([adb_path, "reboot"])
+                CTkMessagebox.CTkMessagebox(root, title="Success !", message=f"The device {ip}:{port} was successfully softbricked")
 
 def pairPopup():
     popup = ctk.CTkInputDialog(text="What is the six digit pair code ?", title="Pair code prompt")
