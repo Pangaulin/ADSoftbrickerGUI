@@ -61,31 +61,52 @@ def isPaired():
         ip_pair_input.configure(state="normal")
         port_pair_input.configure(state="normal")
 
-def usbConfirmation():
+def usbCheck():
+    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
+                                                icon="warning", option_1="Yes", option_2="No")
+    response = confirmation.get()
+    if response == "Yes":
+        usbDoubleCheck()
+    else:
+        return
+
+def wirelessCheck():
     confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
                                  icon="warning", option_1="Yes", option_2="No")
     response = confirmation.get()
-    if (response=="Yes"):
+    if response == "Yes":
+        wirelessDoubleCheck()
+    else:
+        return
+
+def usbDoubleCheck():
+    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to do it ? (Double check)",
+                                 icon="warning", option_1="Yes", option_2="No")
+    response = confirmation.get()
+    if response == "Yes":
         usb()
     else:
         return
 
-def wirelessConfirmation():
-    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
+def wirelessDoubleCheck():
+    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to do it ? (Double check)",
                                  icon="warning", option_1="Yes", option_2="No")
     response = confirmation.get()
-    if (response=="Yes"):
+    if response == "Yes":
         wireless()
     else:
         return
     
-def errorPopup():
-    error = CTkMessagebox.CTkMessagebox(title="No device found", message="No device found while softbricking. Please check if the device is connected in USB and has USB Debug enabled", icon="cancel")
+def noDevicesPopup():
+    CTkMessagebox.CTkMessagebox(title="No device found", message="No device found while softbricking. Please check if the device is connected in USB and has USB Debug enabled", icon="cancel")
     
+def disconnectedPopup():
+    CTkMessagebox.CTkMessagebox(title="No device found", message="The device was disconnected while softbricking. Please reconnect it and retry", icon="cancel")
+
 def usb():
     get_process = subprocess.run([adb_path, "shell", "pm", "list", "packages", "-f"], capture_output=True, text=True, shell=False)
     if "no devices/emulators found" in get_process.stdout or "no devices/emulators found" in get_process.stderr:
-        errorPopup()
+        noDevicesPopup()
         return
     process_array = get_process.stdout.split('\n')
 
@@ -97,7 +118,7 @@ def usb():
                 is_up = 0
                 break
     if is_up == 0:
-        errorPopup()
+        disconnectedPopup()
         return
     else:
         subprocess.run([adb_path, "reboot"])
@@ -177,8 +198,7 @@ def wireless():
                 is_up = 0
                 break
     if is_up == 0:
-        returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
-        returnlabel.pack()
+        disconnectedPopup()
         return
     
     subprocess.run([adb_path, "reboot"])
@@ -195,9 +215,9 @@ returnlabel.configure(width=20, height=10)
 first_label = ctk.CTkLabel(root, text="How do you want to connect to the target ?")
 combobox_values = ["USB Debugging", "Wireless Debugging"]
 combobox = ctk.CTkComboBox(root, values=combobox_values, width=170, command=displayedMethod)
-usb_button = ctk.CTkButton(root, text="Start softbricking", command=usbConfirmation)
+usb_button = ctk.CTkButton(root, text="Start softbricking", command=usbCheck)
 
-wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wirelessConfirmation)
+wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wirelessCheck)
 ip_label = ctk.CTkLabel(root, text="IP Address:")
 ip_input = ctk.CTkEntry(root, placeholder_text="XXX.XXX.X.XX")
 port_label = ctk.CTkLabel(root, text="Port:")
