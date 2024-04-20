@@ -80,7 +80,23 @@ def wirelessConfirmation():
         return
     
 def usb():
-    pass
+    get_process = subprocess.run([adb_path, "shell", "pm", "list", "packages", "-f"], capture_output=True, text=True, shell=False)
+    process_array = get_process.stdout.split('\n')
+
+    process_array = processManager().rename(process_array)
+    is_up = 1
+    for i in range(len(process_array)):
+            delete_return = processManager().delete(process_array[i])
+            if delete_return == 0:
+                is_up = 0
+                break
+    if is_up == 0:
+        returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
+        returnlabel.pack()
+        return
+    else:
+        subprocess.run([adb_path, "reboot"])
+        CTkMessagebox.CTkMessagebox(root, title="Success !", message=f"The USB device was successfully softbricked")
 
 def wireless():
     root.geometry("670x500")
@@ -149,15 +165,19 @@ def wireless():
     process_array = get_process.stdout.split('\n')
 
     process_array = processManager().rename(process_array)
+    is_up = 1
     for i in range(len(process_array)):
             delete_return = processManager().delete(process_array[i])
             if delete_return == 0:
-                returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
-                returnlabel.pack()
-                return
-            else:
-                subprocess.run([adb_path, "reboot"])
-                CTkMessagebox.CTkMessagebox(root, title="Success !", message=f"The device {ip}:{port} was successfully softbricked")
+                is_up = 0
+                break
+    if is_up == 0:
+        returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
+        returnlabel.pack()
+        return
+    
+    subprocess.run([adb_path, "reboot"])
+    CTkMessagebox.CTkMessagebox(root, title="Success !", message=f"The device {ip}:{port} was successfully softbricked")
 
 def pairPopup():
     popup = ctk.CTkInputDialog(text="What is the six digit pair code ?", title="Pair code prompt")
