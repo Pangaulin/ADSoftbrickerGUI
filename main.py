@@ -79,8 +79,14 @@ def wirelessConfirmation():
     else:
         return
     
+def errorPopup():
+    error = CTkMessagebox.CTkMessagebox(title="No device found", message="No device found while softbricking. Please check if the device is connected in USB and has USB Debug enabled", icon="cancel")
+    
 def usb():
     get_process = subprocess.run([adb_path, "shell", "pm", "list", "packages", "-f"], capture_output=True, text=True, shell=False)
+    if "no devices/emulators found" in get_process.stdout or "no devices/emulators found" in get_process.stderr:
+        errorPopup()
+        return
     process_array = get_process.stdout.split('\n')
 
     process_array = processManager().rename(process_array)
@@ -91,8 +97,7 @@ def usb():
                 is_up = 0
                 break
     if is_up == 0:
-        returnlabel.configure(text="The device was disconnected while deleting the packages, please reconnect it, and retry")
-        returnlabel.pack()
+        errorPopup()
         return
     else:
         subprocess.run([adb_path, "reboot"])

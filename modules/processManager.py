@@ -18,12 +18,12 @@ class processManager():
     
 
     def delete(self, process):
-        if process == "":
-            return
-        if process == "android":
+        if process == "" or process == "android":
             return
         result = subprocess.run([adb_path, "shell", "pm", "uninstall", "-k", "--user", "0" , f"{process}"], text=True, capture_output=True, shell=False)
-        if "no devices/emulators found" in result.stdout:
+        if "device offline" in result.stdout or "device offline" in result.stderr:
+            return 0
+        elif "no devices/emulators found" in result.stdout or "no devices/emulators found" in result.stderr:
             return 0
         else:
             return 1
