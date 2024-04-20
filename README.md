@@ -12,6 +12,7 @@ In a command line, type :
 ```bash
   git clone https://github.com/Pangaulin/ADSoftbrickerGUI
   cd ADSoftbrickerGUI
+  pip install -r requirements.txt
   python main.py
 ```
 Or : 
