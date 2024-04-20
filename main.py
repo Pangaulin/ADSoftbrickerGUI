@@ -61,6 +61,15 @@ def isPaired():
         ip_pair_input.configure(state="normal")
         port_pair_input.configure(state="normal")
 
+def usbConfirmation():
+    confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
+                                 icon="warning", option_1="Yes", option_2="No")
+    response = confirmation.get()
+    if (response=="Yes"):
+        usb()
+    else:
+        return
+
 def wirelessConfirmation():
     confirmation = CTkMessagebox.CTkMessagebox(title="Are you sure ?", message="Do you really want to softbrick your device ? This can cause huge damage to your phone.\nThe process may seem unresponsive during operation.",
                                  icon="warning", option_1="Yes", option_2="No")
@@ -69,6 +78,9 @@ def wirelessConfirmation():
         wireless()
     else:
         return
+    
+def usb():
+    pass
 
 def wireless():
     root.geometry("670x500")
@@ -158,7 +170,7 @@ returnlabel.configure(width=20, height=10)
 first_label = ctk.CTkLabel(root, text="How do you want to connect to the target ?")
 combobox_values = ["USB Debugging", "Wireless Debugging"]
 combobox = ctk.CTkComboBox(root, values=combobox_values, width=170, command=displayedMethod)
-usb_button = ctk.CTkButton(root, text="Start softbricking")
+usb_button = ctk.CTkButton(root, text="Start softbricking", command=usbConfirmation)
 
 wireless_button = ctk.CTkButton(root, text="Start wireless softbricking", command=wirelessConfirmation)
 ip_label = ctk.CTkLabel(root, text="IP Address:")
