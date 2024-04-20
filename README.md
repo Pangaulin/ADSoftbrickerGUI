@@ -1,5 +1,5 @@
 
-# ADSoftbricker
+# ADSoftbrickerGUI
 
 This software is for educational purposes only, I am not responsible of any damage made on your phone. This software was tested on Windows 10 and Windows 11 with Python 3.12, on a Samsung A03 and an emulator (LDPlayer).
 
